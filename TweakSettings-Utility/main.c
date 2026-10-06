@@ -4,7 +4,10 @@
 #include <unistd.h>
 #include <string.h>
 #include <dlfcn.h>
+#include <limits.h>
+#include <stdbool.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 
 #import "rootless.h"
 #include <errno.h>
@@ -88,6 +91,18 @@ int wait_pid(pid_t pid) {
     return -1;
 }
 
+// compares two paths after resolving symlinks (/var/jb, /private/var, .jbroot-XXXX)
+bool same_path(const char *a, const char *b) {
+	char resolved_a[PATH_MAX];
+	char resolved_b[PATH_MAX];
+
+	if (realpath(a, resolved_a) && realpath(b, resolved_b)) {
+		return strcmp(resolved_a, resolved_b) == 0;
+	}
+
+	return strcmp(a, b) == 0;
+}
+
 int main(int argc, char **argv, char **envp) {
 
 	// check that TweakSettings.app exists
@@ -104,7 +119,7 @@ int main(int argc, char **argv, char **envp) {
 	char buffer[(1024)] = {0};
 	int pidpath = proc_pidpath(parent, buffer, sizeof(buffer));
 	if (pidpath > 0){
-		if (strcmp(buffer, ROOT_PATH("/Applications/TweakSettings.app/TweakSettings")) == 0){
+		if (same_path(buffer, ROOT_PATH("/Applications/TweakSettings.app/TweakSettings"))){
 			tweaksettings = true;
 		}
 	}
@@ -178,12 +193,12 @@ int main(int argc, char **argv, char **envp) {
             status = execl(ROOT_PATH("/usr/bin/launchctl"), "launchctl", "reboot", "userspace", NULL);
 		} break;
 		case TSUtilityActionTypeTweakinject: {
-            if (access("/var/jb/.installed_dopamine", F_OK) == 0) {
+            if (access(ROOT_PATH("/.installed_dopamine"), F_OK) == 0) {
                 pid_t cpid = fork();
                 if (cpid == 0) {
-                    status = access("/var/jb/basebin/.safe_mode", F_OK) == 0
-                            ? execl(ROOT_PATH("/bin/rm"), "rm", "-f", "/var/jb/basebin/.safe_mode", NULL)
-                            : execl(ROOT_PATH("/bin/touch"), "touch", "/var/jb/basebin/.safe_mode", NULL);
+                    status = access(ROOT_PATH("/basebin/.safe_mode"), F_OK) == 0
+                            ? execl(ROOT_PATH("/bin/rm"), "rm", "-f", ROOT_PATH("/basebin/.safe_mode"), NULL)
+                            : execl(ROOT_PATH("/bin/touch"), "touch", ROOT_PATH("/basebin/.safe_mode"), NULL);
                 }
 
                 if (wait_pid(cpid) == 0) {
@@ -224,8 +239,8 @@ int main(int argc, char **argv, char **envp) {
 			}
 		} break;
 		case TSUtilityActionTypeSubstrated: {
-			if (access("/etc/rc.d/substrate", F_OK) == 0) {
-				execl("/etc/rc.d/substrate", "substrate", NULL);
+			if (access(ROOT_PATH("/etc/rc.d/substrate"), F_OK) == 0) {
+				execl(ROOT_PATH("/etc/rc.d/substrate"), "substrate", NULL);
 			}
 		} break;
 	}

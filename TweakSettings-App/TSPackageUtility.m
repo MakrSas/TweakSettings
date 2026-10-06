@@ -39,7 +39,7 @@ NSArray *SPECIFIERS_FROM_ENTRY(NSDictionary *entry, NSString *sourceBundlePath, 
         if (![fileManger fileExistsAtPath:bundlePath])
             bundlePath = [NSString stringWithFormat:ROOT_PATH_NS(@"/Library/PreferenceBundles/%@.bundle"), bundleName];
         if (![fileManger fileExistsAtPath:bundlePath])
-            bundlePath = [NSString stringWithFormat:ROOT_PATH_NS(@"/System/Library/PreferenceBundles/%@.bundle"), bundleName];
+            bundlePath = [NSString stringWithFormat:@"/System/Library/PreferenceBundles/%@.bundle", bundleName];
         if (![fileManger fileExistsAtPath:bundlePath]) {
             return nil;
         }

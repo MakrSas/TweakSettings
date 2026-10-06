@@ -172,6 +172,21 @@
 #pragma mark - Private Methods
 
 - (void)_resetNavigationAppearance:(UINavigationController *)controller {
+    if (@available(iOS 26, *)) {
+
+        // Liquid Glass: the legacy bar properties below opt the bar out of the system glass
+        // background and scroll edge effect, restore the defaults through the appearance objects instead
+        UINavigationBar *navigationBar = controller.navigationBar;
+        navigationBar.tintColor = nil;
+        navigationBar.titleTextAttributes = nil;
+        navigationBar.largeTitleTextAttributes = nil;
+        navigationBar.standardAppearance = [UINavigationBarAppearance new];
+        navigationBar.compactAppearance = nil;
+        navigationBar.scrollEdgeAppearance = nil;
+        navigationBar.compactScrollEdgeAppearance = nil;
+        return;
+    }
+
     [controller.navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
     [controller.navigationBar setShadowImage:nil];
     [controller.navigationBar setTintColor:nil];

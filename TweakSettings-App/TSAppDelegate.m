@@ -21,7 +21,7 @@ static void HandleExceptions(NSException *exception) {
 
 @implementation TSAppDelegate
 
-#pragma mark - UIApplicationDelegate
+#pragma mark - UIApplicationDelegate (pre-iOS 13 and process level events)
 
 - (BOOL)application:(UIApplication *)application willFinishLaunchingWithOptions:(NSDictionary<UIApplicationLaunchOptionsKey, id> *)launchOptions {
 
@@ -36,6 +36,12 @@ static void HandleExceptions(NSException *exception) {
 
     _navigationManager = [TSRootNavigationManager new];
 
+    // iOS 13+ builds the window in TSSceneDelegate (UIScene life cycle is required on iOS 27)
+    if (@available(iOS 13.0, *)) {
+
+        return YES;
+    }
+
     self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
     self.window.rootViewController = (id)_navigationManager.splitController;
     [self.window makeKeyAndVisible];
@@ -44,6 +50,12 @@ static void HandleExceptions(NSException *exception) {
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+
+    // launch shortcuts and URLs are delivered to TSSceneDelegate on iOS 13+
+    if (@available(iOS 13.0, *)) {
+
+        return YES;
+    }
 
     if (launchOptions[UIApplicationLaunchOptionsShortcutItemKey]) {
 
