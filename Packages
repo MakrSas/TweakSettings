@@ -1,0 +1,23 @@
+Package: com.creaturecoding.tweaksettings
+Version: 1.0.8
+Architecture: iphoneos-arm64e
+Maintainer: CreatureSurvive <support@creaturecoding.com>
+Installed-Size: 664
+Depends: firmware (>= 10.0), preferenceloader | com.creaturecoding.preferred
+Filename: ./com.creaturecoding.tweaksettings_1.0.8_iphoneos-arm64e.deb
+Size: 313896
+MD5sum: 4bdb42ad71fe30a753848995d5043723
+SHA1: 18b500e6136feba8e80581a632252d7447f42f83
+SHA256: 1106fefcaf2e6d4acfaf3e11c2d64b618c17d39978d420640c8a5838844cbe14
+Section: Applications
+Priority: optional
+Homepage: https://creaturecoding.com/
+Description: Dedicated settings app for tweaks
+Tag: purpose::application, compatible_min::ios10
+Author: CreatureSurvive <support@creaturecoding.com>
+Depiction: https://creaturecoding.com/?page=depiction&id=tweaksettings
+Dev: CreatureSurvive
+Icon: file:///Applications/TweakSettings.app/icon_large.png
+Name: TweakSettings
+Sileodepiction: https://creaturecoding.com/sileo/depiction/?package_id=tweaksettings
+

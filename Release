@@ -1,0 +1,32 @@
+Architectures: iphoneos-arm64e
+Codename: ios
+Components: main
+Date: Tue, 06 Oct 2026 06:56:07 +0000
+Description: TweakSettings for RootHide
+Label: TweakSettings
+Origin: TweakSettings
+Suite: stable
+MD5Sum:
+ 437664fcd5b8f9ad6ff7a9acc748702a              972 Packages
+ d5583e393d050317403bf4566d248c6f              593 Packages.bz2
+ 56974c01bd422061466a7aa6344b1c5a              538 Packages.gz
+ 10810b0bacd73724361fabda69a46260              608 Packages.xz
+ 2dc36e2d5db898ed1815503e0f498afa              197 Release
+SHA1:
+ 20616bf1178bf08213fd968062546a7df51a214c              972 Packages
+ 18ff562f9552044d9b535159ff17f168e5a25af0              593 Packages.bz2
+ c0e1510216089fedbb72487c77da9976fa9c0299              538 Packages.gz
+ 4bac99b0c45f448d52bc05a85874b646230b5ed8              608 Packages.xz
+ 47fa8412f5d5fb7662e8aa61b786a1aba7f2d518              197 Release
+SHA256:
+ 013a3c830a3a70bfee426ab715429299f83637a6db659763e43a6492f2683036              972 Packages
+ 24cae81fb6496f7d6c40a55dac85e13a012ff1be7102a41e1e34b311c3b14acf              593 Packages.bz2
+ eed520a6144fea41584e61c94de4deab4b3b7e1dcaf143acb2f5a14da84662a6              538 Packages.gz
+ 6a875553adbc40e8d3de785f7da2725eb62cb3c5cc0114211bec2c5f5fbd24fc              608 Packages.xz
+ cc9db8c97943b115605df042502efe2e8d7e77261bcb605ab098928a6ae1ab1a              197 Release
+SHA512:
+ 41ded74e94d84d82f6ddae196f8e90548c1b352a3a42a32f0d2c6a13dd75845998e288ae86c2dc85f5b69e41ade5e22e3ba60bb4036ac5c4b72446c37728ee60              972 Packages
+ e8f9ebe5beee3e159f3a2049de8352526696d53d651d3ec8b8abe79b14fdf4173128e6a9e3ba1d7cc684782f99bf7071ef9ad134945845967179b004426d38ac              593 Packages.bz2
+ b47af75d5d4ebcf14cf6b1ad859920878a30ed2d0b3d2754a5233e766ff30682c6a342e235b666babb36fa9edc303661a0cb434063f577e9fd168a2c32abe64c              538 Packages.gz
+ 29b46f0c95cde8bff013ea8bb62a4ed1038f425ab2d70858f4626f36ec9ab8d20c4c1813d8d89e11150066f37ca710fe0fb382475892fb63213ba2bf25530bff              608 Packages.xz
+ 8f5207a96d4403c37f4d4ac381c1f6f0426576f74b47136dae01b89940095b37eba3075011d57f176810e4cb798e855713a60d733c3fe7d33eff84c0cd24e2c0              197 Release
