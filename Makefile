@@ -2,7 +2,7 @@ ifeq ($(THEOS_PACKAGE_SCHEME),roothide)
 # RootHide needs the roothide/theos fork (https://github.com/roothide/theos)
 # the jbroot() API comes from libroothide, the Xcode project is told where to find it
 export TARGET = iphone:clang:latest:15.0
-export ARCHS = arm64 arm64e
+export ARCHS = arm64e
 TweakSettings_XCODEFLAGS = GCC_PREPROCESSOR_DEFINITIONS='THEOS_PACKAGE_SCHEME_ROOTHIDE=1 $$(inherited)' \
 	HEADER_SEARCH_PATHS='$$(inherited) $(THEOS_VENDOR_INCLUDE_PATH)' \
 	LIBRARY_SEARCH_PATHS='$$(inherited) $(THEOS_VENDOR_LIBRARY_PATH) $(THEOS_VENDOR_LIBRARY_PATH)/roothide' \
