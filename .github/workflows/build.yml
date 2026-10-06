@@ -75,7 +75,7 @@ jobs:
   repo:
     name: Publish APT repo (GitHub Pages)
     needs: roothide
-    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+    if: (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/roothide-ios27') && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: write
