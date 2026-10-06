@@ -33,6 +33,10 @@ jobs:
           echo "THEOS=$HOME/theos" >> "$GITHUB_ENV"
           echo "$(brew --prefix make)/libexec/gnubin" >> "$GITHUB_PATH"
 
+      - name: Show RootHide SDK files
+        run: |
+          find "$THEOS/vendor/include" "$THEOS/vendor/lib" -iname '*roothide*' | head -20
+
       - name: Build
         run: make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide messages=yes
 
@@ -42,7 +46,7 @@ jobs:
           xcodebuild -project TweakSettings.xcodeproj -scheme TweakSettings -sdk iphoneos \
             -arch arm64e CODE_SIGNING_ALLOWED=NO \
             GCC_PREPROCESSOR_DEFINITIONS='THEOS_PACKAGE_SCHEME_ROOTHIDE=1 $(inherited)' \
-            HEADER_SEARCH_PATHS="$THEOS/vendor/include" build 2>&1 | grep -E "error:|fatal error" -B2 -A6 | head -80
+            OTHER_CFLAGS="-idirafter $THEOS/vendor/include" build 2>&1 | grep -E "error:|fatal error" -B2 -A6 | head -80
 
       - name: Inspect package
         run: |
