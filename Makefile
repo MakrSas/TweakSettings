@@ -4,7 +4,9 @@ ifeq ($(THEOS_PACKAGE_SCHEME),roothide)
 # (-idirafter: vendor/include ships its own Preferences headers that must not shadow Frameworks/)
 export TARGET = iphone:clang:latest:15.0
 export ARCHS = arm64e
-TweakSettings_XCODEFLAGS = GCC_PREPROCESSOR_DEFINITIONS='THEOS_PACKAGE_SCHEME_ROOTHIDE=1 $$(inherited)' \
+# the project targets iOS 10.0, arm64e needs the same minimum version as the rest of the jailbreak (pointer auth ABI)
+TweakSettings_XCODEFLAGS = IPHONEOS_DEPLOYMENT_TARGET=15.0 \
+	GCC_PREPROCESSOR_DEFINITIONS='THEOS_PACKAGE_SCHEME_ROOTHIDE=1 $$(inherited)' \
 	OTHER_CFLAGS='$$(inherited) -idirafter $(THEOS_VENDOR_INCLUDE_PATH)' \
 	LIBRARY_SEARCH_PATHS='$$(inherited) $(THEOS_VENDOR_LIBRARY_PATH) $(THEOS_VENDOR_LIBRARY_PATH)/roothide' \
 	OTHER_LDFLAGS='$$(inherited) -lroothide'
