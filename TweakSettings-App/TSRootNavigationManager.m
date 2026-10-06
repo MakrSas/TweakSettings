@@ -53,6 +53,14 @@
 - (BOOL)splitViewController:(UISplitViewController *)splitViewController collapseSecondaryViewController:(UIViewController *)secondaryViewController ontoPrimaryViewController:(UIViewController *)primaryViewController
 {
     [self _getCurrentNavigationStack];
+
+    // nothing selected yet, only the blank placeholder is showing. discard the secondary controller
+    // and show the tweak list, a navigation controller with zero view controllers can't be displayed
+    if (!_navigationStack.count) {
+
+        return YES;
+    }
+
     [_rootController setViewControllers:_navigationStack animated:NO];
     return NO;
 }
@@ -154,6 +162,9 @@
     if (self.isCollapsed) {
 
         [controllers insertObject:_rootListController atIndex:0];
+    } else if (!controllers.count) {
+
+        [controllers addObject:_blankListController];
     }
 
     [self.topNavigationController setViewControllers:controllers animated:animated];
