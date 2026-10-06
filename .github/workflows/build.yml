@@ -71,3 +71,48 @@ jobs:
           name: tweaksettings-roothide-arm64e
           path: Releases/*arm64e*.deb
           if-no-files-found: error
+
+  repo:
+    name: Publish APT repo (GitHub Pages)
+    needs: roothide
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: tweaksettings-roothide-arm64e
+          path: debs
+
+      - name: Generate repo files
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq dpkg-dev apt-utils bzip2 xz-utils
+          mkdir site && cp debs/*.deb site/
+          cd site
+          dpkg-scanpackages -m . /dev/null > Packages
+          gzip -9 -k Packages
+          bzip2 -9 -k Packages
+          xz -9 -k Packages
+          apt-ftparchive \
+            -o APT::FTPArchive::Release::Origin="TweakSettings" \
+            -o APT::FTPArchive::Release::Label="TweakSettings" \
+            -o APT::FTPArchive::Release::Suite="stable" \
+            -o APT::FTPArchive::Release::Codename="ios" \
+            -o APT::FTPArchive::Release::Architectures="iphoneos-arm64e" \
+            -o APT::FTPArchive::Release::Components="main" \
+            -o APT::FTPArchive::Release::Description="TweakSettings for RootHide" \
+            release . > Release
+          printf '<!doctype html><title>TweakSettings repo</title><p>Add this URL to Sileo: <code>https://%s.github.io/%s/</code>\n' \
+            "${GITHUB_REPOSITORY_OWNER}" "${GITHUB_REPOSITORY#*/}" > index.html
+          cat Release
+
+      - name: Publish to gh-pages
+        run: |
+          cd site
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Publish repo for ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
