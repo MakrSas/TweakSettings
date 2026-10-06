@@ -1,0 +1,118 @@
+name: Build
+
+on:
+  push:
+    branches: [master, roothide-ios27]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  roothide:
+    name: RootHide (arm64e)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select newest Xcode
+        run: |
+          XCODE=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -n 1)
+          [ -n "$XCODE" ] || { echo "Xcode 26 not found on runner"; ls /Applications | grep -i xcode; exit 1; }
+          sudo xcode-select -switch "$XCODE/Contents/Developer"
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+
+      - name: Install dependencies
+        run: brew install make ldid xz dpkg
+
+      - name: Install RootHide Theos
+        run: |
+          git clone --recursive --depth 1 https://github.com/roothide/theos "$HOME/theos"
+          echo "THEOS=$HOME/theos" >> "$GITHUB_ENV"
+          echo "$(brew --prefix make)/libexec/gnubin" >> "$GITHUB_PATH"
+
+      - name: Show RootHide SDK files
+        run: |
+          find "$THEOS/vendor/include" "$THEOS/vendor/lib" -iname '*roothide*' | head -20
+
+      - name: Build
+        run: make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide messages=yes
+
+      - name: Show compiler errors
+        if: failure()
+        run: |
+          xcodebuild -project TweakSettings.xcodeproj -scheme TweakSettings -sdk iphoneos \
+            -arch arm64e CODE_SIGNING_ALLOWED=NO \
+            GCC_PREPROCESSOR_DEFINITIONS='THEOS_PACKAGE_SCHEME_ROOTHIDE=1 $(inherited)' \
+            OTHER_CFLAGS="-idirafter $THEOS/vendor/include" build 2>&1 | grep -E "error:|fatal error" -B2 -A6 | head -80
+
+      - name: Inspect package
+        run: |
+          for deb in Releases/*roothide*.deb Releases/*arm64e*.deb; do
+            [ -f "$deb" ] || continue
+            echo "== $deb"
+            dpkg-deb -I "$deb" | grep -E "Package|Version|Architecture"
+            dpkg-deb -c "$deb" | grep -E "TweakSettings.app/TweakSettings$|usr/bin/"
+            rm -rf /tmp/pkg && dpkg-deb -x "$deb" /tmp/pkg
+            for bin in /tmp/pkg/Applications/TweakSettings.app/TweakSettings /tmp/pkg/usr/bin/tweaksettings-utility; do
+              echo "-- $bin"
+              lipo -info "$bin"
+              otool -hv "$bin" | tail -n 2
+              otool -L "$bin" | grep -iE "roothide|Preferences|UIKit" || true
+              otool -l "$bin" | grep -A4 LC_BUILD_VERSION | grep -E "minos|sdk"
+            done
+            plutil -p /tmp/pkg/Applications/TweakSettings.app/Info.plist | grep -A8 UIApplicationSceneManifest
+          done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tweaksettings-roothide-arm64e
+          path: Releases/*arm64e*.deb
+          if-no-files-found: error
+
+  repo:
+    name: Publish APT repo (GitHub Pages)
+    needs: roothide
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: tweaksettings-roothide-arm64e
+          path: debs
+
+      - name: Generate repo files
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq dpkg-dev apt-utils bzip2 xz-utils
+          mkdir site && cp debs/*.deb site/
+          cd site
+          dpkg-scanpackages -m . /dev/null > Packages
+          gzip -9 -k Packages
+          bzip2 -9 -k Packages
+          xz -9 -k Packages
+          apt-ftparchive \
+            -o APT::FTPArchive::Release::Origin="TweakSettings" \
+            -o APT::FTPArchive::Release::Label="TweakSettings" \
+            -o APT::FTPArchive::Release::Suite="stable" \
+            -o APT::FTPArchive::Release::Codename="ios" \
+            -o APT::FTPArchive::Release::Architectures="iphoneos-arm64e" \
+            -o APT::FTPArchive::Release::Components="main" \
+            -o APT::FTPArchive::Release::Description="TweakSettings for RootHide" \
+            release . > Release
+          printf '<!doctype html><title>TweakSettings repo</title><p>Add this URL to Sileo: <code>https://%s.github.io/%s/</code>\n' \
+            "${GITHUB_REPOSITORY_OWNER}" "${GITHUB_REPOSITORY#*/}" > index.html
+          cat Release
+
+      - name: Publish to gh-pages
+        run: |
+          cd site
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Publish repo for ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" gh-pages

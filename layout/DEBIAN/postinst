@@ -1,35 +1,48 @@
 #!/bin/sh
 
-UTILITY=/usr/bin/tweaksettings-utility
-# if tweaksettings-utility doesnt exist, try the rootless path
-if [ ! -f "$UTILITY" ]; then
-    UTILITY=/var/jb$UTILITY
+# the jailbreak root differs per scheme:
+#   rootful:  /
+#   rootless: /var/jb
+#   roothide: /var/containers/Bundle/Application/.jbroot-XXXXXXXXXXXXXXXX
+JBROOT=""
+if [ ! -f "/Applications/TweakSettings.app/TweakSettings" ]; then
+    if command -v jbroot >/dev/null 2>&1; then
+        JBROOT=$(jbroot / 2>/dev/null | sed 's:/*$::')
+    fi
+
+    if [ -z "$JBROOT" ] || [ ! -f "$JBROOT/Applications/TweakSettings.app/TweakSettings" ]; then
+        JBROOT=/var/jb
+    fi
+
+    if [ ! -f "$JBROOT/Applications/TweakSettings.app/TweakSettings" ]; then
+        for ROOT in /var/containers/Bundle/Application/.jbroot-*; do
+            if [ -f "$ROOT/Applications/TweakSettings.app/TweakSettings" ]; then
+                JBROOT=$ROOT
+                break
+            fi
+        done
+    fi
 fi
 
+UTILITY=$JBROOT/usr/bin/tweaksettings-utility
 if [ -f "$UTILITY" ]; then
-    chown root:wheel $UTILITY
-    chmod 0777 $UTILITY
-    chmod +s $UTILITY
+    chown root:wheel "$UTILITY"
+    chmod 0777 "$UTILITY"
+    chmod +s "$UTILITY"
     echo "set $UTILITY permissions"
 fi
 
-APP=/Applications/TweakSettings.app/TweakSettings
-# if TweakSettings.app doesnt exist, try the rootless path
-if [ ! -f "$APP" ]; then
-    APP=/var/jb$APP
-fi
-
+APP_FOLDER=$JBROOT/Applications/TweakSettings.app
+APP=$APP_FOLDER/TweakSettings
 if [ -f "$APP" ]; then
-    chown root:wheel $APP
-    chmod 0755 $APP
+    chown root:wheel "$APP"
+    chmod 0755 "$APP"
     echo "set $APP permissions"
 fi
 
-APP_FOLDER=${APP%/*}
-
-if [ -f "$APP_FOLDER" ]; then
-  uicache -p APP_FOLDER
-  echo $APP_FOLDER
+if [ -d "$APP_FOLDER" ]; then
+    uicache -p "$APP_FOLDER" >/dev/null 2>&1 || true
+    echo "registered $APP_FOLDER"
 fi
 
 exit 0;

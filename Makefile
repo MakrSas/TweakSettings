@@ -1,4 +1,16 @@
-ifeq ($(THEOS_PACKAGE_SCHEME),rootless)
+ifeq ($(THEOS_PACKAGE_SCHEME),roothide)
+# RootHide needs the roothide/theos fork (https://github.com/roothide/theos)
+# the jbroot() API comes from libroothide, the Xcode project is told where to find it
+# (-idirafter: vendor/include ships its own Preferences headers that must not shadow Frameworks/)
+export TARGET = iphone:clang:latest:15.0
+export ARCHS = arm64e
+# the project targets iOS 10.0, arm64e needs the same minimum version as the rest of the jailbreak (pointer auth ABI)
+TweakSettings_XCODEFLAGS = IPHONEOS_DEPLOYMENT_TARGET=15.0 \
+	GCC_PREPROCESSOR_DEFINITIONS='THEOS_PACKAGE_SCHEME_ROOTHIDE=1 $$(inherited)' \
+	OTHER_CFLAGS='$$(inherited) -idirafter $(THEOS_VENDOR_INCLUDE_PATH)' \
+	LIBRARY_SEARCH_PATHS='$$(inherited) $(THEOS_VENDOR_LIBRARY_PATH) $(THEOS_VENDOR_LIBRARY_PATH)/roothide' \
+	OTHER_LDFLAGS='$$(inherited) -lroothide'
+else ifeq ($(THEOS_PACKAGE_SCHEME),rootless)
 export TARGET = iphone:clang:14.4:15.0
 export ARCHS = arm64
 TweakSettings_XCODEFLAGS = GCC_PREPROCESSOR_DEFINITIONS='THEOS_PACKAGE_INSTALL_PREFIX=\"$(THEOS_PACKAGE_INSTALL_PREFIX)\"'
@@ -37,4 +49,8 @@ after-stage::
 	$(ECHO_BEGIN)$(PRINT_FORMAT_MAGENTA) "Built for $(or $(THEOS_PACKAGE_SCHEME),rootful)"$(ECHO_END)
 
 after-install::
+ifeq ($(THEOS_PACKAGE_SCHEME),roothide)
+	install.exec "killall -9 ${XCODEPROJ_NAME}; uicache -p \"\$$(jbroot /Applications/${XCODEPROJ_NAME}.app)\"; uiopen tweaks:$(LAUNCH_URL)"
+else
 	install.exec "killall -9 ${XCODEPROJ_NAME}; uicache -p $(THEOS_PACKAGE_INSTALL_PREFIX)/Applications/${XCODEPROJ_NAME}.app; uiopen tweaks:$(LAUNCH_URL)"
+endif
